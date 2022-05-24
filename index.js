@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require("cors");
 const jwt = require('jsonwebtoken');
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config();
 const app = express()
 const port = process.env.PORT || 5000;
@@ -37,6 +37,7 @@ async function run() {
         const productCollection = client.db("household").collection("products");
         const userCollection = client.db("household").collection("users");
 
+        // user, email, admin, jwt api's
         app.put('/users/:email', async (req, res) => {
             const email = req.params.email;
             const user = req.body;
@@ -82,10 +83,18 @@ async function run() {
             const result = await cursor.toArray();
             res.send(result);
         })
+
+        // product api's
         app.get('/products', async (req, res) => {
             const query = {};
             const cursor = productCollection.find(query);
             const result = await cursor.toArray();
+            res.send(result);
+        })
+        app.get('/products/:id',verifyJWT, async (req, res)=>{
+            const id = req.params.id;
+            const query = {_id: ObjectId(id)};
+            const result = await productCollection.findOne(query);
             res.send(result);
         })
     } finally {
