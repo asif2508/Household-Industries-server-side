@@ -51,14 +51,29 @@ async function run() {
             res.send({ result, token });
         });
 
+
+        app.get('/admin/:email', async(req, res)=>{
+            const email = req.params.email;
+            const user = await userCollection.findOne({email: email});
+            const admin  = user.role === 'admin';
+            res.send({admin: admin});
+        })
         app.put('/users/admin/:email',verifyJWT, async (req, res) => {
             const email = req.params.email;
-            const filter = { email: email };
+            const requesterClient = req.decoded.email;
+            const clientAccount = await userCollection.findOne({email: requesterClient});
+
+            if(clientAccount.role === 'admin'){
+                const filter = { email: email };
             const updateDoc = {
                 $set: {role: 'admin'}
             };
             const result = await userCollection.updateOne(filter, updateDoc);
             res.send(result);
+            }else{
+                res.status(403).send({message: 'forbidden'})
+            }
+            
         })
 
         app.get('/users', verifyJWT, async (req, res) => {
