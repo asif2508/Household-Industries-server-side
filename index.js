@@ -12,6 +12,20 @@ app.use(express.json());
 
 // CONNECTING TO DATABASE
 
+function verifyJWT(req, res, next) {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+        return res.status(401).send({ message: 'UnAuthorized access' });
+    }
+    const token = authHeader.split(' ')[1];
+    jwt.verify(token, process.env.WEB_TOKEN_SECRET, function (err, decoded) {
+        if (err) {
+            return res.status(403).send({ message: 'Forbidden access' })
+        }
+        req.decoded = decoded;
+        next();
+    });
+}
 
 const uri = `mongodb+srv://household-user:O1rjWwEbPxDPyv6M@cluster0.otz5f.mongodb.net/?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
@@ -32,11 +46,27 @@ async function run() {
                 $set: user
             };
             const result = await userCollection.updateOne(filter, updateDoc, options);
-            const token = jwt.sign({email:email}, process.env.WEB_TOKEN_SECRET, { expiresIn: '1d' });
-            
-            res.send(result, token);
+            const token = jwt.sign({ email: email }, process.env.WEB_TOKEN_SECRET, { expiresIn: '1d' });
+
+            res.send({ result, token });
+        });
+
+        app.put('/users/admin/:email',verifyJWT, async (req, res) => {
+            const email = req.params.email;
+            const filter = { email: email };
+            const updateDoc = {
+                $set: {role: 'admin'}
+            };
+            const result = await userCollection.updateOne(filter, updateDoc);
+            res.send(result);
         })
 
+        app.get('/users', verifyJWT, async (req, res) => {
+            const query = {};
+            const cursor = userCollection.find(query);
+            const result = await cursor.toArray();
+            res.send(result);
+        })
         app.get('/products', async (req, res) => {
             const query = {};
             const cursor = productCollection.find(query);
