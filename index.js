@@ -37,6 +37,7 @@ async function run() {
         await client.connect();
         const productCollection = client.db("household").collection("products");
         const userCollection = client.db("household").collection("users");
+        const ordersCollection = client.db("household").collection("orders");
 
         // user, email, admin, jwt api's
         app.put('/users/:email', async (req, res) => {
@@ -98,11 +99,23 @@ async function run() {
             const result = await productCollection.findOne(query);
             res.send(result);
         });
-
+        //orders api
+        app.put('/orders', async (req, res)=>{
+            const order = req.body;
+            filter ={}
+            const options = { upsert: true };
+            const updateDoc = {
+                $set: order
+            };
+            const result = await ordersCollection.updateOne(filter, updateDoc, options);
+            res.send(result);
+        })
         // Payment intent api
         app.post('/create-payment-intent', verifyJWT, async (req, res) => {
             const service = req.body;
+            console.log(service);
             const price = service.price;
+           if(price > 0){
             const amount = price * 100;
             const paymentIntent = await stripe.paymentIntents.create({
                 amount: amount,
@@ -110,6 +123,7 @@ async function run() {
                 payment_method_types: ['card']
             });
             res.send({ clientSecret: paymentIntent.client_secret })
+           }
         });
     } finally {
         // await client.close();
