@@ -39,6 +39,8 @@ async function run() {
         const userCollection = client.db("household").collection("users");
         const ordersCollection = client.db("household").collection("orders");
 
+
+
         // user, email, admin, jwt api's
         app.put('/users/:email', async (req, res) => {
             const email = req.params.email;
@@ -86,6 +88,8 @@ async function run() {
             res.send(result);
         })
 
+
+
         // product api's
         app.get('/products', async (req, res) => {
             const query = {};
@@ -99,7 +103,16 @@ async function run() {
             const result = await productCollection.findOne(query);
             res.send(result);
         });
+
+
+
+
         //orders api
+        app.post('/orders', async(req, res)=>{
+            const order = req.body;
+            const result = await ordersCollection.insertOne(order);
+            res.send(result);
+        })
         app.put('/orders', async (req, res)=>{
             const order = req.body;
             filter ={}
@@ -110,6 +123,15 @@ async function run() {
             const result = await ordersCollection.updateOne(filter, updateDoc, options);
             res.send(result);
         })
+        app.get('/myorders/:email', async(req, res)=>{
+            const email = req.params.email;
+            const query = {email: email};
+            const cursor = ordersCollection.find(query);
+            const result = await cursor.toArray();
+            res.send(result);
+        })
+
+
         // Payment intent api
         app.post('/create-payment-intent', verifyJWT, async (req, res) => {
             const service = req.body;
