@@ -114,6 +114,12 @@ async function run() {
 
 
         //orders api
+        app.get('/orders', async(req, res)=>{
+            const query={};
+            const cursor = ordersCollection.find(query);
+            const result = await cursor.toArray();
+            res.send(result);
+        })
         app.post('/orders', async(req, res)=>{
             const order = req.body;
             const result = await ordersCollection.insertOne(order);
