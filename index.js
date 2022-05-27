@@ -38,7 +38,7 @@ async function run() {
         const productCollection = client.db("household").collection("products");
         const userCollection = client.db("household").collection("users");
         const ordersCollection = client.db("household").collection("orders");
-
+        const reviewCollection = client.db("household").collection("reviews");
 
 
         // user, email, admin, jwt api's
@@ -89,7 +89,6 @@ async function run() {
         })
 
 
-
         // product api's
         app.get('/products', async (req, res) => {
             const query = {};
@@ -115,10 +114,19 @@ async function run() {
         })
         app.put('/orders', async (req, res)=>{
             const order = req.body;
-            filter ={}
+            const email = order.email;
+            const quantity = order.quantity;
+            const totalPrice = order.totalPrice;
+            const id = order.id;
+            console.log(order);
+            filter ={product_id: id,
+                email: email,
+                quantity: quantity,
+                totalPrice: totalPrice}
+            const newTransactionId = order.newTransactionId;
             const options = { upsert: true };
             const updateDoc = {
-                $set: order
+                $set: {newTransactionId: newTransactionId},
             };
             const result = await ordersCollection.updateOne(filter, updateDoc, options);
             res.send(result);
@@ -147,7 +155,23 @@ async function run() {
             res.send({ clientSecret: paymentIntent.client_secret })
            }
         });
-    } finally {
+
+        // review api
+        app.get('/reviews', async(req, res)=>{
+            const query={};
+            const cursor = reviewCollection.find(query);
+            const result  = await cursor.toArray();
+            res.send(result);
+        })
+
+        app.post('/reviews', async(req, res)=>{
+            const review = req.body;
+            const result = await reviewCollection.insertOne(review);
+            res.send(result);
+        })
+    
+    } 
+    finally {
         // await client.close();
     }
 }
