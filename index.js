@@ -121,8 +121,26 @@ async function run() {
             const result = await productCollection.deleteOne(query);
             res.send(result);
         })
+        app.get('/manage/:_id', async (req, res) => {
+            const id = req.params._id;
+            const query = { _id: ObjectId(id) };
+            const result = await productCollection.findOne(query);
+            res.send(result);
+        });
 
-
+        app.put('/products/:_id', async (req, res)=>{
+            const id = req.params._id;
+            const change = req.body;
+           if(change){
+            filter ={_id : ObjectId(id)}
+            const options = { upsert: true };
+            const updateDoc = {
+                $set: change,
+            };
+            const result = await productCollection.updateOne(filter, updateDoc, options);
+            res.send(result);
+           }
+        })
 
 
         //orders api
