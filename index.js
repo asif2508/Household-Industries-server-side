@@ -87,6 +87,12 @@ async function run() {
             const result = await cursor.toArray();
             res.send(result);
         })
+        app.delete('/users/:_id', async (req, res) => {
+            const id = req.params._id;
+            const query = { _id: ObjectId(id) }
+            const result = await userCollection.deleteOne(query);
+            res.send(result);
+        })
 
 
         // product api's
@@ -109,6 +115,12 @@ async function run() {
             const result = await productCollection.findOne(query);
             res.send(result);
         });
+        app.delete('/products/:_id', async (req, res) => {
+            const id = req.params._id;
+            const query = { _id: ObjectId(id) }
+            const result = await productCollection.deleteOne(query);
+            res.send(result);
+        })
 
 
 
@@ -151,7 +163,12 @@ async function run() {
             const result = await cursor.toArray();
             res.send(result);
         })
-
+        app.delete('/orders/:_id', async (req, res) => {
+            const id = req.params._id;
+            const query = { _id: ObjectId(id) }
+            const result = await ordersCollection.deleteOne(query);
+            res.send(result);
+        })
 
         // Payment intent api
         app.post('/create-payment-intent', verifyJWT, async (req, res) => {
