@@ -137,24 +137,20 @@ async function run() {
             const result = await ordersCollection.insertOne(order);
             res.send(result);
         })
-        app.put('/orders', async (req, res)=>{
+        app.put('/orders/:_id', async (req, res)=>{
+            const id = req.params._id;
+            console.log(id);
             const order = req.body;
-            const email = order.email;
-            const quantity = order.quantity;
-            const totalPrice = order.totalPrice;
-            const id = order.id;
             console.log(order);
-            filter ={product_id: id,
-                email: email,
-                quantity: quantity,
-                totalPrice: totalPrice}
-            const newTransactionId = order.newTransactionId;
+           if(order){
+            filter ={_id : ObjectId(id)}
             const options = { upsert: true };
             const updateDoc = {
-                $set: {newTransactionId: newTransactionId},
+                $set: order,
             };
             const result = await ordersCollection.updateOne(filter, updateDoc, options);
             res.send(result);
+           }
         })
         app.get('/myorders/:email', async(req, res)=>{
             const email = req.params.email;
